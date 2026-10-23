@@ -1,9 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: todo-app-deployment
-  labels:
-    app: todo-app
+  name: todo-app-dep
 spec:
   replicas: 1
   selector:
@@ -15,8 +13,11 @@ spec:
         app: todo-app
     spec:
       containers:
-      - name: todo-app
-        image: miltioxs/todo-app:v1.2
-        ports:
-        - containerPort: 80
-          name: http-todo-app
+        - name: todo-app
+          image: miltioxs/todo-app:v1.5
+          env:
+            # Overrides the image default (3000) to show env vars work
+            - name: PORT
+              value: "8080"
+          ports:
+            - containerPort: 8080

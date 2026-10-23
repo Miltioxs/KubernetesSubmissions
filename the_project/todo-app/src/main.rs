@@ -1,6 +1,9 @@
-use axum::{Router, routing::get};
+use axum::{Router, response::Html, routing::get};
 use std::env;
 use tokio::net::TcpListener;
+
+// HTML page embedded into the binary at compile time
+const INDEX_HTML: &str = include_str!("index.html");
 
 #[tokio::main]
 async fn main() {
@@ -10,8 +13,8 @@ async fn main() {
         .and_then(|value| value.parse().ok())
         .unwrap_or(3000);
 
-    // Single route: GET / answers with a plain text message
-    let app = Router::new().route("/", get(|| async { "todo-app is running" }));
+    // Single route: GET / answers with the HTML page
+    let app = Router::new().route("/", get(|| async { Html(INDEX_HTML) }));
 
     // Listen on 0.0.0.0 (all interfaces) so the server is reachable inside a container
     let listener = TcpListener::bind(("0.0.0.0", port))
