@@ -13,3 +13,10 @@ spec:
             name: todo-app-service
             port:
               number: 80
+      - path: /status
+        pathType: Prefix
+        backend:
+          service:
+            name: log-output-service
+            port:
+              number: 80
