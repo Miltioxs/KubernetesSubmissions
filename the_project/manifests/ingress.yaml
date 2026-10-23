@@ -20,3 +20,10 @@ spec:
             name: log-output-service
             port:
               number: 80
+      - path: /pingpong
+        pathType: Prefix
+        backend:
+          service:
+            name: pingpong-service
+            port:
+              number: 80

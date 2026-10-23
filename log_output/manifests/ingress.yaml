@@ -1,15 +1,17 @@
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: log-output-ingress
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /status
-        pathType: Prefix
-        backend:
-          service:
-            name: log-output-service
-            port:
-              number: 80
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: log-output-ingress
+# spec:
+#   rules:
+#   - http:
+#       paths:
+#       - path: /status
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: log-output-service
+#             port:
+#               number: 80
+
+# I'm using the same ingress of todo app located in the_project/manifests/ingress.yaml to access the log-output service. The path /status is used to access the log-output service.
