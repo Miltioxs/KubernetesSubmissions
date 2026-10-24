@@ -14,12 +14,29 @@ spec:
       labels:
         app: log-output
     spec:
+      volumes:
+      # Shared between both containers, lives as long as the pod
+      - name: shared-files
+        emptyDir: {}
       containers:
-      - name: log-output
-        image: miltioxs/log-output:v1.7
+      - name: log-writer
+        image: miltioxs/log-output:log-writer-v1.10
+        env:
+        - name: LOG_FILE
+          value: /usr/src/app/files/log.txt
+        volumeMounts:
+        - name: shared-files
+          mountPath: /usr/src/app/files
+      - name: log-reader
+        image: miltioxs/log-output:log-reader-v1.10
         env:
         - name: PORT
           value: "3000"
+        - name: LOG_FILE
+          value: /usr/src/app/files/log.txt
         ports:
         - containerPort: 3000
           name: http-log-output
+        volumeMounts:
+        - name: shared-files
+          mountPath: /usr/src/app/files

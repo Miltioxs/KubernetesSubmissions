@@ -5,5 +5,5 @@ COPY src ./src
 RUN cargo build --release
 
 FROM debian:bookworm-slim
-COPY --from=builder /app/target/release/log_output /usr/local/bin/log_output
-CMD ["log_output"]
+COPY --from=builder /app/target/release/log-reader /usr/local/bin/log-reader
+CMD ["log-reader"]
