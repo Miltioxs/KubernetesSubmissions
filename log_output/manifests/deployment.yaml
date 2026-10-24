@@ -17,7 +17,8 @@ spec:
       volumes:
       # Shared between both containers, lives as long as the pod
       - name: shared-files
-        emptyDir: {}
+        persistentVolumeClaim:
+          claimName: local-storage-pvc
       containers:
       - name: log-writer
         image: miltioxs/log-output:log-writer-v1.10
@@ -28,7 +29,7 @@ spec:
         - name: shared-files
           mountPath: /usr/src/app/files
       - name: log-reader
-        image: miltioxs/log-output:log-reader-v1.10
+        image: miltioxs/log-output:log-reader-v1.11
         env:
         - name: PORT
           value: "3000"
