@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-backend-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-backend
+  template:
+    metadata:
+      labels:
+        app: todo-backend
+    spec:
+      containers:
+        - name: todo-backend
+          image: miltioxs/todo-app:backend-v2.2
+          env:
+            # Overrides the image default (3000) to show env vars work
+            - name: PORT
+              value: "8080"
+          ports:
+            - containerPort: 8080
+              name: http-todo-back

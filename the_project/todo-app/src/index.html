@@ -78,19 +78,17 @@
     <!-- Picture cached in the persistent volume, refreshed every 10 minutes -->
     <img src="/images/image.jpg" alt="Random picture from Lorem Picsum">
 
+    <!-- todo-app receives the form and forwards it to todo-backend -->
     <!-- maxlength stops the browser from accepting todos over 140 characters -->
-    <div class="todo-form">
-      <input type="text" maxlength="140" placeholder="Enter a new todo (max 140 characters)" aria-label="New todo">
-      <!-- Does not send the todo yet -->
-      <button type="button">Send</button>
-    </div>
+    <form class="todo-form" method="POST" action="/todos">
+      <input type="text" name="content" maxlength="140" required placeholder="Enter a new todo (max 140 characters)" aria-label="New todo">
+      <button type="submit">Send</button>
+    </form>
 
     <h2>Todos</h2>
-    <!-- Hardcoded todos for now -->
+    <!-- Filled by todo-app with the todos fetched from todo-backend -->
     <ul class="todo-list">
-      <li>Learn Kubernetes basics</li>
-      <li>Deploy application to cluster</li>
-      <li>Configure persistent volumes</li>
+      <!-- TODOS -->
     </ul>
   </main>
 </body>

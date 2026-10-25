@@ -1,10 +1,11 @@
 use axum::{
-    Router,
+    Form, Router,
     extract::State,
     http::{StatusCode, header},
-    response::{Html, IntoResponse},
-    routing::get,
+    response::{Html, IntoResponse, Redirect},
+    routing::{get, post},
 };
+use serde::{Deserialize, Serialize};
 use std::{
     env,
     path::PathBuf,
@@ -25,11 +26,30 @@ const IMAGE_URL: &str = "https://picsum.photos/1200";
 // How long the same picture is kept before fetching a new one
 const IMAGE_MAX_AGE: Duration = Duration::from_secs(10 * 60);
 
-// Shared state: where the picture is cached and whether a download is running
+// Keeps the page from hanging when todo-backend does not answer
+const BACKEND_TIMEOUT: Duration = Duration::from_secs(2);
+
+// Place in index.html where the todo list is rendered
+const TODOS_MARKER: &str = "<!-- TODOS -->";
+
+// Shared state: where the picture is cached, whether a download is running and where todo-backend is
 struct AppState {
     image_path: PathBuf,
     downloading: AtomicBool,
     client: reqwest::Client,
+    backend_url: String,
+}
+
+// Todo as returned by todo-backend; only the content is shown
+#[derive(Deserialize)]
+struct Todo {
+    content: String,
+}
+
+// Received from the form and forwarded to todo-backend as JSON
+#[derive(Deserialize, Serialize)]
+struct NewTodo {
+    content: String,
 }
 
 #[tokio::main]
@@ -50,6 +70,9 @@ async fn main() {
         image_path,
         downloading: AtomicBool::new(false),
         client: reqwest::Client::new(),
+        // todo-backend is reached pod to pod through its Service, it is not exposed by the Ingress
+        backend_url: env::var("TODO_BACKEND_URL")
+            .unwrap_or_else(|_| "http://todo-backend-service".to_string()),
     });
 
     // Read the port from the PORT env var, falling back to 3000 if missing or invalid
@@ -58,11 +81,13 @@ async fn main() {
         .and_then(|value| value.parse().ok())
         .unwrap_or(3000);
 
-    // GET / refreshes the cached picture when needed and answers with the HTML page
+    // GET / refreshes the cached picture when needed and answers with the HTML page and the todos
     // GET /images/image.jpg only serves the picture already stored on disk
+    // POST /todos forwards the form to todo-backend and goes back to the page
     let app = Router::new()
         .route("/", get(index))
         .route("/images/image.jpg", get(image))
+        .route("/todos", post(create_todo))
         .with_state(state);
 
     // Listen on 0.0.0.0 (all interfaces) so the server is reachable inside a container
@@ -78,7 +103,7 @@ async fn main() {
     axum::serve(listener, app).await.expect("server error");
 }
 
-async fn index(State(state): State<Arc<AppState>>) -> Html<&'static str> {
+async fn index(State(state): State<Arc<AppState>>) -> Html<String> {
     // The file's modification time tells when the picture was downloaded, and it survives restarts
     let modified = tokio::fs::metadata(&state.image_path)
         .await
@@ -109,7 +134,57 @@ async fn index(State(state): State<Arc<AppState>>) -> Html<&'static str> {
         }
     }
 
-    Html(INDEX_HTML)
+    // Render the todos into the page; it still loads when todo-backend is down
+    let todos_html = match fetch_todos(&state).await {
+        Ok(todos) => todos
+            .iter()
+            .map(|todo| format!("<li>{}</li>", escape_html(&todo.content)))
+            .collect::<String>(),
+        Err(error) => {
+            eprintln!("failed to fetch todos: {error}");
+            "<li>Todos unavailable</li>".to_string()
+        }
+    };
+
+    Html(INDEX_HTML.replace(TODOS_MARKER, &todos_html))
+}
+
+async fn create_todo(State(state): State<Arc<AppState>>, Form(new_todo): Form<NewTodo>) -> Redirect {
+    let result = state
+        .client
+        .post(format!("{}/todos", state.backend_url))
+        .json(&new_todo)
+        .timeout(BACKEND_TIMEOUT)
+        .send()
+        .await
+        .and_then(|response| response.error_for_status());
+    if let Err(error) = result {
+        eprintln!("failed to create todo: {error}");
+    }
+
+    // 303 See Other makes the browser load the page again with GET
+    Redirect::to("/")
+}
+
+async fn fetch_todos(state: &AppState) -> Result<Vec<Todo>, reqwest::Error> {
+    state
+        .client
+        .get(format!("{}/todos", state.backend_url))
+        .timeout(BACKEND_TIMEOUT)
+        .send()
+        .await?
+        .error_for_status()?
+        .json()
+        .await
+}
+
+// Todos are written by users, so they are escaped before going into the HTML
+fn escape_html(text: &str) -> String {
+    text.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&#39;")
 }
 
 async fn image(State(state): State<Arc<AppState>>) -> impl IntoResponse {
