@@ -12,13 +12,22 @@ spec:
       labels:
         app: todo-app
     spec:
+      volumes:
+      - name: shared-files
+        persistentVolumeClaim:
+          claimName: local-storage-pvc
       containers:
         - name: todo-app
-          image: miltioxs/todo-app:v1.5
+          image: miltioxs/todo-app:v1.12
           env:
             # Overrides the image default (3000) to show env vars work
             - name: PORT
               value: "8080"
+            - name: IMAGE_PATH
+              value: /usr/src/app/images/image.jpg
           ports:
             - containerPort: 8080
               name: http-todo-app
+          volumeMounts:
+            - name: shared-files
+              mountPath: /usr/src/app/images

@@ -22,12 +22,22 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       text-align: center;
     }
+    img {
+      display: block;
+      max-width: min(600px, 100%);
+      height: auto;
+      margin: 1rem auto 0;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
   <main>
     <h1>todo-app</h1>
     <p>todo-app is running</p>
+    <!-- Picture cached in the persistent volume, refreshed every 10 minutes -->
+    <img src="/images/image.jpg" alt="Random picture from Lorem Picsum">
+
   </main>
 </body>
 </html>

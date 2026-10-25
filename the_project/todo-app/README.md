@@ -2,6 +2,12 @@
 
 Create cluster `k3d cluster create --port 8082:30080@agent:0 -p 8081:80@loadbalancer --agents 2`
 
-Deploy with `kubectl apply -f manifests`
+Create local path in node `docker exec k3d-k3s-default-agent-0 mkdir -p /tmp/kube`
 
-Go to the Browser and type `http://localhost:8082/`
+Enter to ../../local_storage and run `kubectl apply -f manifests`
+
+Enter to ../the_project/ directory and run `kubectl apply -f manifests`
+
+Go to todo-app directory and run `kubectl apply -f manifests`
+
+Go to the Browser and type `http://localhost:8081/`
