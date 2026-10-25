@@ -10,6 +10,4 @@ return to log_output directory and deploy with `kubectl apply -f manifests`
 
 Go to ../pingpong directory and deploy `kubectl apply -f manifests`
 
-Enter to ../the_project/ directory and run `kubectl apply -f manifests`
-
 Go to the Browser and type `http://localhost:8081/status` or `http://localhost:8081/pingpong`

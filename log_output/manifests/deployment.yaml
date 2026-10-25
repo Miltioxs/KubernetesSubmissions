@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: log-output-deployment
+  namespace: exercises
   labels:
     app: log-output
 spec:
@@ -18,7 +19,7 @@ spec:
       # Shared between both containers, lives as long as the pod
       - name: shared-files
         persistentVolumeClaim:
-          claimName: local-storage-pvc
+          claimName: local-storage-exercises-pvc
       containers:
       - name: log-writer
         image: miltioxs/log-output:log-writer-v1.10
