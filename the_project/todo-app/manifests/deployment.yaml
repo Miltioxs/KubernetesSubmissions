@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: todo-app-dep
+  namespace: project
 spec:
   replicas: 1
   selector:
@@ -15,7 +16,7 @@ spec:
       volumes:
       - name: shared-files
         persistentVolumeClaim:
-          claimName: local-storage-pvc
+          claimName: local-storage-todo-app-pvc
       containers:
         - name: todo-app
           image: miltioxs/todo-app:v2.2
