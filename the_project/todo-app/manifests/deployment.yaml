@@ -18,7 +18,7 @@ spec:
           claimName: local-storage-pvc
       containers:
         - name: todo-app
-          image: miltioxs/todo-app:v1.12
+          image: miltioxs/todo-app:v1.13
           env:
             # Overrides the image default (3000) to show env vars work
             - name: PORT

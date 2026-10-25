@@ -3,41 +3,95 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>todo-app</title>
+  <title>Todo App</title>
   <style>
     body {
       font-family: system-ui, sans-serif;
       background: #f4f6f8;
       color: #1f2933;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
       margin: 0;
+      padding: 2rem 1rem;
     }
     main {
       background: #ffffff;
-      padding: 2rem 3rem;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       text-align: center;
     }
     img {
       display: block;
-      max-width: min(600px, 100%);
+      width: 220px;
+      max-width: 100%;
       height: auto;
-      margin: 1rem auto 0;
+      margin: 0 auto 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .todo-form {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .todo-form input {
+      flex: 1 1 280px;
+      max-width: 460px;
+      padding: 0.6rem 0.75rem;
+      font-size: 1rem;
+      border: 2px solid #4caf50;
       border-radius: 4px;
+    }
+    .todo-form button {
+      padding: 0.6rem 1.5rem;
+      font-size: 1rem;
+      color: #ffffff;
+      background: #4caf50;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .todo-form button:hover {
+      background: #43a047;
+    }
+    .todo-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      text-align: left;
+    }
+    .todo-list li {
+      padding: 0.9rem 1.25rem;
+      margin-bottom: 0.75rem;
+      background: #f9f9f9;
+      border-left: 4px solid #4caf50;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
   </style>
 </head>
 <body>
   <main>
-    <h1>todo-app</h1>
-    <p>todo-app is running</p>
+    <h1>Todo App</h1>
     <!-- Picture cached in the persistent volume, refreshed every 10 minutes -->
     <img src="/images/image.jpg" alt="Random picture from Lorem Picsum">
 
+    <!-- maxlength stops the browser from accepting todos over 140 characters -->
+    <div class="todo-form">
+      <input type="text" maxlength="140" placeholder="Enter a new todo (max 140 characters)" aria-label="New todo">
+      <!-- Does not send the todo yet -->
+      <button type="button">Send</button>
+    </div>
+
+    <h2>Todos</h2>
+    <!-- Hardcoded todos for now -->
+    <ul class="todo-list">
+      <li>Learn Kubernetes basics</li>
+      <li>Deploy application to cluster</li>
+      <li>Configure persistent volumes</li>
+    </ul>
   </main>
 </body>
 </html>
