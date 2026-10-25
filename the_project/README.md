@@ -6,14 +6,14 @@ Deploy with `kubectl apply -f manifests`
 
 ### Deploy 
 
-Deploy project namespace `kubectl apply -f namespaces/manifests`
+Deploy project namespace `kubectl apply -f ../namespaces/manifests`
 
-Deploy pvc and pv `kubectl apply -f local_storage/manifests`
+Deploy pvc and pv `kubectl apply -f ../local_storage/manifests`
 
-Deploy todo-app ingress `kubectl apply -f the_project/manifests`
+Deploy todo-app ingress `kubectl apply -f manifests`
 
-Deploy todo app `kubectl apply -f the_project/todo-app/manifests`
+Deploy todo app `kubectl apply -f todo-app/manifests`
 
-Deploy todo backend `kubectl apply -f the_project/todo-backend/manifests`
+Deploy todo backend `kubectl apply -f todo-backend/manifests`
 
 Go to the Browser and type `http://localhost:8081/`
