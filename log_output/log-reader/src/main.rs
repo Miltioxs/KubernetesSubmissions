@@ -1,22 +1,28 @@
 use axum::{Router, extract::State, routing::get};
-use std::{env, sync::Arc};
+use std::{env, sync::Arc, time::Duration};
 use tokio::net::TcpListener;
 
-// Paths of the files read on every request, both shared through a volume
-struct Files {
+// Where the data shown by /status comes from
+struct AppState {
+    // File written by log-writer, shared through a volume
     log_file: String,
-    pingpong_file: String,
+    // Endpoint of the pingpong application that answers the number of pongs
+    pingpong_url: String,
+    client: reqwest::Client,
 }
 
 #[tokio::main]
 async fn main() {
-    let files = Arc::new(Files {
-        // File written by log-writer
+    let state = Arc::new(AppState {
         log_file: env::var("LOG_FILE")
             .unwrap_or_else(|_| "/usr/src/app/files/log.txt".to_string()),
-        // File written by the pingpong application
-        pingpong_file: env::var("PINGPONG_FILE")
-            .unwrap_or_else(|_| "/usr/src/app/files/pingpong.txt".to_string()),
+        pingpong_url: env::var("PINGPONG_URL")
+            .unwrap_or_else(|_| "http://pingpong-service/pings".to_string()),
+        // The timeout keeps /status from hanging when pingpong does not answer
+        client: reqwest::Client::builder()
+            .timeout(Duration::from_secs(2))
+            .build()
+            .expect("failed to build HTTP client"),
     });
 
     // Read the port from the PORT env var, falling back to 3000 if missing or invalid
@@ -29,26 +35,28 @@ async fn main() {
     let app = Router::new()
         .route(
             "/status",
-            get(|State(files): State<Arc<Files>>| async move {
-                // Read the files on every request so the latest values are returned
-                let log = tokio::fs::read_to_string(&files.log_file)
+            get(|State(state): State<Arc<AppState>>| async move {
+                // Read the file on every request so the latest line is returned
+                let log = tokio::fs::read_to_string(&state.log_file)
                     .await
                     .unwrap_or_default();
                 let Some(last_line) = log.lines().last() else {
                     return "log file not available yet".to_string();
                 };
 
-                // No file yet means pingpong has not received any request
-                let pongs = tokio::fs::read_to_string(&files.pingpong_file)
-                    .await
-                    .ok()
-                    .and_then(|content| content.trim().parse::<u64>().ok())
-                    .unwrap_or(0);
+                // Ask pingpong for the count; show "unavailable" so a failure is not mistaken for 0
+                let pongs = match fetch_pongs(&state).await {
+                    Ok(pongs) => pongs.to_string(),
+                    Err(error) => {
+                        eprintln!("failed to fetch pongs from {}: {error}", state.pingpong_url);
+                        "unavailable".to_string()
+                    }
+                };
 
                 format!("{last_line}.\nPing / Pongs: {pongs}")
             }),
         )
-        .with_state(files);
+        .with_state(state);
 
     // Listen on 0.0.0.0 (all interfaces) so the server is reachable inside a container
     let listener = TcpListener::bind(("0.0.0.0", port))
@@ -61,4 +69,16 @@ async fn main() {
 
     // Serve requests until the process is stopped
     axum::serve(listener, app).await.expect("server error");
+}
+
+async fn fetch_pongs(state: &AppState) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
+    let body = state
+        .client
+        .get(&state.pingpong_url)
+        .send()
+        .await?
+        .error_for_status()?
+        .text()
+        .await?;
+    Ok(body.trim().parse()?)
 }

@@ -14,21 +14,12 @@ spec:
       labels:
         app: pingpong
     spec:
-      volumes:
-      - name: shared-files
-        persistentVolumeClaim:
-          claimName: local-storage-pvc
       containers:
       - name: pingpong
-        image: miltioxs/pingpong:v1.11
+        image: miltioxs/pingpong:v2.1
         env:
         - name: PORT
           value: "3000"
-        - name: PINGPONG_FILE
-          value: /usr/src/app/files/pingpong.txt
         ports:
         - containerPort: 3000
           name: http-pingpong
-        volumeMounts:
-        - name: shared-files
-          mountPath: /usr/src/app/files

@@ -29,12 +29,14 @@ spec:
         - name: shared-files
           mountPath: /usr/src/app/files
       - name: log-reader
-        image: miltioxs/log-output:log-reader-v1.11
+        image: miltioxs/log-output:log-reader-v2.1
         env:
         - name: PORT
           value: "3000"
         - name: LOG_FILE
           value: /usr/src/app/files/log.txt
+        - name: PINGPONG_URL
+          value: http://pingpong-service:80/pings
         ports:
         - containerPort: 3000
           name: http-log-output
