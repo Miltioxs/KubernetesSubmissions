@@ -16,10 +16,9 @@ spec:
       containers:
         - name: todo-backend
           image: miltioxs/todo-app:backend-v2.2
-          env:
-            # Overrides the image default (3000) to show env vars work
-            - name: PORT
-              value: "8080"
+          envFrom:
+            - configMapRef:
+                name: todo-backend-configmap
           ports:
             - containerPort: 8080
               name: http-todo-back
