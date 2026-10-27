@@ -8,6 +8,8 @@ struct AppState {
     log_file: String,
     // Endpoint of the pingpong application that answers the number of pongs
     pingpong_url: String,
+    // File mounted from the ConfigMap as a volume
+    info_file: String,
     client: reqwest::Client,
 }
 
@@ -18,6 +20,8 @@ async fn main() {
             .unwrap_or_else(|_| "/usr/src/app/files/log.txt".to_string()),
         pingpong_url: env::var("PINGPONG_URL")
             .unwrap_or_else(|_| "http://pingpong-service/pings".to_string()),
+        info_file: env::var("INFO_FILE")
+            .unwrap_or_else(|_| "/usr/src/app/config/information.txt".to_string()),
         // The timeout keeps /status from hanging when pingpong does not answer
         client: reqwest::Client::builder()
             .timeout(Duration::from_secs(2))
@@ -31,17 +35,31 @@ async fn main() {
         .and_then(|value| value.parse().ok())
         .unwrap_or(3000);
 
-    // GET /status answers with the latest log line and the ping-pong count
+    // GET /status answers with the ConfigMap values, the latest log line and the ping-pong count
     let app = Router::new()
         .route(
             "/status",
             get(|State(state): State<Arc<AppState>>| async move {
+                // Read the ConfigMap file on every request, so changes to the ConfigMap show up without a restart
+                let file_content = tokio::fs::read_to_string(&state.info_file)
+                    .await
+                    .map(|content| content.trim_end().to_string())
+                    .unwrap_or_else(|_| "not available".to_string());
+
+                // Env vars are fixed when the container starts, so a new MESSAGE needs a pod restart
+                let message = match env::var("MESSAGE") {
+                    Ok(message) => format!("MESSAGE={message}"),
+                    Err(_) => "MESSAGE not set".to_string(),
+                };
+
+                let config = format!("file content: {file_content}\nenv variable: {message}");
+
                 // Read the file on every request so the latest line is returned
                 let log = tokio::fs::read_to_string(&state.log_file)
                     .await
                     .unwrap_or_default();
                 let Some(last_line) = log.lines().last() else {
-                    return "log file not available yet".to_string();
+                    return format!("{config}\nlog file not available yet");
                 };
 
                 // Ask pingpong for the count; show "unavailable" so a failure is not mistaken for 0
@@ -53,7 +71,7 @@ async fn main() {
                     }
                 };
 
-                format!("{last_line}.\nPing / Pongs: {pongs}")
+                format!("{config}\n{last_line}.\nPing / Pongs: {pongs}")
             }),
         )
         .with_state(state);

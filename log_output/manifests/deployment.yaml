@@ -20,6 +20,16 @@ spec:
       - name: shared-files
         persistentVolumeClaim:
           claimName: local-storage-exercises-pvc
+      # You set volumes at the Pod level, then mount them into containers inside that Pod
+      - name: config
+        configMap:
+          # Provide the name of the ConfigMap you want to mount.
+          name: log-output-configmap
+          # An array of keys from the ConfigMap to create as files
+          items:
+          - key: "information.txt"
+            path: "information.txt"
+
       containers:
       - name: log-writer
         image: miltioxs/log-output:log-writer-v1.10
@@ -30,17 +40,30 @@ spec:
         - name: shared-files
           mountPath: /usr/src/app/files
       - name: log-reader
-        image: miltioxs/log-output:log-reader-v2.1
+        image: miltioxs/log-output:log-reader-v2.5
         env:
+        # Define the environment variable
         - name: PORT
           value: "3000"
         - name: LOG_FILE
           value: /usr/src/app/files/log.txt
         - name: PINGPONG_URL
           value: http://pingpong-service:80/pings
+        - name: MESSAGE                         
+          valueFrom:
+            configMapKeyRef:
+              name: log-output-configmap
+              key: MESSAGE           
+        - name: INFO_FILE
+          valueFrom:
+            configMapKeyRef:
+              name: log-output-configmap
+              key: INFO_FILE
         ports:
         - containerPort: 3000
           name: http-log-output
         volumeMounts:
         - name: shared-files
           mountPath: /usr/src/app/files
+        - name: config
+          mountPath: /usr/src/app/config/

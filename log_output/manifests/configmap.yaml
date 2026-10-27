@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: log-output-configmap
+  namespace: exercises
+data:
+  MESSAGE: "Hello from the ConfigMap!"  
+  INFO_FILE: /usr/src/app/config/information.txt
+  
+  information.txt: |
+    This is a sample information file stored in a ConfigMap.
+    It can contain multiple lines of text and can be used to provide
+    configuration or other data to your applications running in Kubernetes.
