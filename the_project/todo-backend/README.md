@@ -27,3 +27,15 @@ Enter to todo-backend directory and run `kubectl apply -f manifests`
 
 Go to the Browser and type `http://localhost:8081/`
 
+### Debug Database 
+
+Execute a temporal pod with psql `kubectl run -it -n project -n exercises --rm --restart=Never --image postgres psql-for-debugging sh`
+
+Connect to postgres db `psql postgres://postgres:<pwd>@todo-postgres-svc:5432/postgres`
+
+change to todos db `\c todos`
+
+check tables `\dt`
+
+select todos table `select * from todos;`
+

@@ -27,3 +27,4 @@
 - [2.5.](https://github.com/miltioxs/KubernetesSubmissions/tree/2.5/log_output)
 - [2.6.](https://github.com/miltioxs/KubernetesSubmissions/tree/2.6/the_project)
 - [2.7.](https://github.com/miltioxs/KubernetesSubmissions/tree/2.7/pingpong)
+- [2.8.](https://github.com/miltioxs/KubernetesSubmissions/tree/2.8/the_project/todo-backend)

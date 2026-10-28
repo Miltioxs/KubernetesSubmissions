@@ -15,10 +15,19 @@ spec:
     spec:
       containers:
         - name: todo-backend
-          image: miltioxs/todo-app:backend-v2.2
+          image: miltioxs/todo-app:backend-v2.8
           envFrom:
             - configMapRef:
                 name: todo-backend-configmap
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: todo-postgres-secret
+                  key: POSTGRES_PASSWORD
+            # $(POSTGRES_PASSWORD) is expanded by Kubernetes, it must be defined above
+            - name: DATABASE_URL
+              value: postgres://postgres:$(POSTGRES_PASSWORD)@todo-postgres-svc:5432/todos
           ports:
             - containerPort: 8080
               name: http-todo-back

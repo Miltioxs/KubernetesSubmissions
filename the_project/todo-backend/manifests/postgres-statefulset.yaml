@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: todo-postgres-secret
+  namespace: project
+type: Opaque
+stringData:
+  # Use only URL-safe characters, it is also embedded in DATABASE_URL
+  POSTGRES_PASSWORD: example-password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-postgres-svc
+  namespace: project
+spec:
+  # Headless: DNS points straight to the StatefulSet pod
+  clusterIP: None
+  selector:
+    app: todo-postgres
+  ports:
+    - port: 5432
+      name: postgres
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: todo-postgres-ss
+  namespace: project
+spec:
+  serviceName: todo-postgres-svc
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-postgres
+  template:
+    metadata:
+      labels:
+        app: todo-postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16
+        ports:
+        - containerPort: 5432
+          name: postgres
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: todo-postgres-secret
+              key: POSTGRES_PASSWORD
+        # Database created on the first start
+        - name: POSTGRES_DB
+          value: todos
+        # Subdirectory so Postgres gets an empty folder inside the volume
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        # Ready only when Postgres accepts connections
+        readinessProbe:
+          exec:
+            command: ["pg_isready", "-U", "postgres", "-d", "todos"]
+          periodSeconds: 5
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+  # One PVC per replica, created by k3d's local-path StorageClass
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 100Mi

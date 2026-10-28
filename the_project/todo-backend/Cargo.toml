@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 axum = "0.8.9"
 serde = { version = "1", features = ["derive"] }
-tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread", "time"] }
+tokio-postgres = "0.7"
