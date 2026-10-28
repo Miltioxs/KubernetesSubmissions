@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: wiki-todo-cronjob
+  namespace: project
+spec:
+  schedule: "0 * * * *"          # every hour, on the hour
+  concurrencyPolicy: Forbid       # never two runs at the same time
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: wiki-todo
+            image: curlimages/curl:8.11.1
+            env:
+            # todo-backend is reached pod to pod through its Service
+            - name: BACKEND_URL
+              value: http://todo-backend-service
+            command: ["/bin/sh", "-c"]
+            args:
+            - |
+              set -eu
+              # Wikipedia blocks requests without a descriptive User-Agent
+              UA="todo-cronjob/1.0 (DevOps with Kubernetes course)"
+              # Retry a few times in case the article URL makes the todo longer than 140 chars
+              for attempt in 1 2 3; do
+                # Special:Random answers with a redirect; redirect_url is its Location header
+                url=$(curl -sS -o /dev/null -w '%{redirect_url}' -A "$UA" https://en.wikipedia.org/wiki/Special:Random)
+                todo="Read $url"
+                if [ -n "$url" ] && [ ${#todo} -le 140 ]; then
+                  curl -sSf -X POST -H 'Content-Type: application/json' \
+                    -d "{\"content\":\"$todo\"}" "$BACKEND_URL/todos"
+                  echo "created todo: $todo"
+                  exit 0
+                fi
+              done
+              echo "could not get a usable article" >&2
+              exit 1
