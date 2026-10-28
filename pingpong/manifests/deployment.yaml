@@ -17,10 +17,18 @@ spec:
     spec:
       containers:
       - name: pingpong
-        image: miltioxs/pingpong:v2.1
+        image: miltioxs/pingpong:v2.7
         env:
         - name: PORT
           value: "3000"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
+        # $(POSTGRES_PASSWORD) is expanded by Kubernetes, it must be defined above
+        - name: DATABASE_URL
+          value: postgres://postgres:$(POSTGRES_PASSWORD)@postgres-svc:5432/postgres
         ports:
         - containerPort: 3000
           name: http-pingpong
