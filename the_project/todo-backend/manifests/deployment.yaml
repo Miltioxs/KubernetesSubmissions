@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: todo-backend
-          image: miltioxs/todo-app:backend-v2.8
+          image: miltioxs/todo-app:backend-v2.10
           envFrom:
             - configMapRef:
                 name: todo-backend-configmap

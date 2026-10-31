@@ -7,6 +7,9 @@ use tokio_postgres::{Client, NoTls, Row};
 // Longest todo accepted, the same limit the input field enforces
 const MAX_TODO_LENGTH: usize = 140;
 
+// Longest part of a todo written to the logs, since requests can be much longer than the limit
+const MAX_LOGGED_LENGTH: usize = 300;
+
 // Time to wait between connection attempts while Postgres is starting
 const RETRY_DELAY: Duration = Duration::from_secs(2);
 
@@ -111,9 +114,25 @@ async fn create_todo(
     State(client): State<Arc<Client>>,
     Json(new_todo): Json<NewTodo>,
 ) -> Result<(StatusCode, Json<Todo>), (StatusCode, String)> {
-    // Validate here too, since the input field limit can be bypassed
     let content = new_todo.content.trim();
-    if content.is_empty() || content.chars().count() > MAX_TODO_LENGTH {
+    let length = content.chars().count();
+
+    // Logged with {:?} so quotes and line breaks are escaped and a todo cannot fake log lines
+    let logged_content: String = content.chars().take(MAX_LOGGED_LENGTH).collect();
+    println!("level=info msg=\"todo received\" length={length} content={logged_content:?}");
+
+    // Validate here too, since the input field limit can be bypassed
+    let rejection = if content.is_empty() {
+        Some("empty")
+    } else if length > MAX_TODO_LENGTH {
+        Some("too_long")
+    } else {
+        None
+    };
+    if let Some(reason) = rejection {
+        eprintln!(
+            "level=warn msg=\"todo rejected\" reason={reason} length={length} content={logged_content:?}"
+        );
         return Err((
             StatusCode::BAD_REQUEST,
             format!("todo must be between 1 and {MAX_TODO_LENGTH} characters"),
@@ -129,7 +148,7 @@ async fn create_todo(
         .map_err(database_error)?;
     let todo = Todo::from(row);
 
-    println!("created todo {}: {}", todo.id, todo.content);
+    println!("level=info msg=\"todo created\" id={} content={:?}", todo.id, todo.content);
     Ok((StatusCode::CREATED, Json(todo)))
 }
 
