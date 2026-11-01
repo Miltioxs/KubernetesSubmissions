@@ -40,7 +40,7 @@ spec:
         - name: shared-files
           mountPath: /usr/src/app/files
       - name: log-reader
-        image: miltioxs/log-output:log-reader-v2.5
+        image: miltioxs/log-output:log-reader-v3.2
         env:
         # Define the environment variable
         - name: PORT

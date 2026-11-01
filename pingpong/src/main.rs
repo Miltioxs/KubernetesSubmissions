@@ -34,6 +34,8 @@ async fn main() {
     // GET /pingpong answers "pong N" and then increments the counter
     // GET /pings answers the total number of pongs, used by log-output over HTTP
     let app = Router::new()
+        // GKE Ingress health check: it expects a 200 on / even though the app is served on another path
+        .route("/", get(|| async { "ok" }))
         .route(
             "/pingpong",
             get(|State(client): State<Arc<Client>>| async move {

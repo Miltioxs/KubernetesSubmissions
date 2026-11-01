@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: pingpong
-        image: miltioxs/pingpong:v2.7
+        image: miltioxs/pingpong:v3.2
         env:
         - name: PORT
           value: "3000"

@@ -26,4 +26,4 @@ select table `SELECT * FROM pingpong_counter;`
 1. Create namespace exercises `kubectl create namespace exercises`
 2. Deploy manifest `kubectl apply -f manifests`
 3. Wait a moment, and then verify all is installed `kubectl get po -nexercises` `kubectl get svc -nexercises`
-4. Use the API of loadbalancer to check de aplication is response as expected `http://<replace with loadbalance-ip>/pingpong`
+4. Use the IP of loadbalancer to check de aplication is response as expected `http://<replace with loadbalance-ip>/pingpong`

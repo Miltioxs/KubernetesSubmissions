@@ -37,6 +37,8 @@ async fn main() {
 
     // GET /status answers with the ConfigMap values, the latest log line and the ping-pong count
     let app = Router::new()
+        // GKE Ingress health check: it expects a 200 on / even though the app is served on another path
+        .route("/", get(|| async { "ok" }))
         .route(
             "/status",
             get(|State(state): State<Arc<AppState>>| async move {

@@ -4,6 +4,7 @@ metadata:
   name: log-output-service
   namespace: exercises
 spec:
+  type: NodePort
   selector:
     app: log-output
   ports:

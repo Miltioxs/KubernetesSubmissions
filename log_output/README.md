@@ -11,3 +11,12 @@ return to log_output directory and deploy with `kubectl apply -f manifests`
 Go to ../pingpong directory and deploy `kubectl apply -f manifests`
 
 Go to the Browser and type `http://localhost:8081/status` or `http://localhost:8081/pingpong`
+
+
+## Deploy in GKE Cluster
+
+0. Create namespace exercises `kubectl create namespace exercises`
+1. Deploy pvc ../local_storage/pvc-exercises.yaml `kubectl apply -f pvc-exercises.yaml`
+2. Deploy log_ouput `kubectl apply -f manifests` here I am deploying the ingress for log_output and pingpong 
+3. Deploy pingpong ../pingpong/manifests `kubectl apply -f manifests`
+4. Test paths `http://<ingress-address>/status` for log_output and `http://<ingress-address>/pingpong` for pinpong 
